@@ -1,350 +1,517 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>App Store - User</title>
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-    <!-- FontAwesome -->
+    <title>চোর-পুলিশ-বাবু-ডাকাত</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2:wght@400;600;800&family=Hind+Siliguri:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase Compat -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+    <!-- Firebase v8 (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Roboto', sans-serif;
-            -webkit-tap-highlight-color: transparent;
+        :root {
+            --paper-bg: #f8f9fa;
+            --blue-ink: #004aad;
+            --red-ink: #ff3333;
+            --card-bg: #ffffff;
+            --text-color: #333333;
         }
 
-        body {
-            background: linear-gradient(135deg, #1e1e2f 0%, #2a2a4a 100%);
-            color: #fff;
-            min-height: 100vh;
-            overflow: hidden;
+        /* Strict Mobile Viewport Setup */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Hind Siliguri', sans-serif; user-select: none; }
+
+        html, body {
+            width: 100vw; max-width: 100%; overflow-x: hidden;
+            background-color: var(--paper-bg);
+            /* Classic Khata Design */
+            background-image: linear-gradient(90deg, transparent 40px, var(--red-ink) 40px, var(--red-ink) 42px, transparent 42px),
+                              linear-gradient(var(--blue-ink) 1px, transparent 1px);
+            background-size: 100% 30px; color: var(--text-color);
         }
 
-        h1, h2, h3 { font-family: 'Poppins', sans-serif; }
+        h1, h2, h3, button, .baloo-font { font-family: 'Baloo Da 2', cursive; }
 
-        /* Glassmorphism Classes */
-        .glass {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        .screen { display: none; min-height: 100vh; width: 100%; padding: 20px; padding-left: 50px; flex-direction: column; align-items: center; }
+        .active-screen { display: flex; }
+
+        /* Paper Containers */
+        .paper-box {
+            background: rgba(255, 255, 255, 0.95); border-radius: 12px; padding: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1); width: 100%; max-width: 400px; border: 1px solid #ddd; position: relative; margin-top: 15px;
         }
 
-        /* View Management */
-        .view {
-            display: none;
-            height: 100vh;
-            width: 100vw;
-            flex-direction: column;
-            animation: fadeIn 0.4s ease-in-out;
-        }
-        .view.active { display: flex; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.98); }
-            to { opacity: 1; transform: scale(1); }
+        /* Organized Action Groups (Home Page) */
+        .action-group {
+            border: 1.5px dashed var(--blue-ink); border-radius: 10px; padding: 15px; margin-top: 15px; background: rgba(255, 255, 255, 0.6);
         }
 
-        /* Header & Search */
-        .header {
-            padding: 20px;
-            padding-top: 40px;
-        }
-        .header h1 { font-size: 24px; margin-bottom: 15px; }
+        /* Buttons & Inputs */
+        input { width: 100%; padding: 10px 12px; margin: 5px 0 10px 0; border: 2px solid var(--blue-ink); border-radius: 8px; font-size: 15px; background: rgba(255,255,255,0.8); outline: none; }
+        button { width: 100%; padding: 10px; background: var(--blue-ink); color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin: 5px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s; font-weight: 600; }
+        button:active { transform: scale(0.95); }
+        button:disabled { background: #888; cursor: not-allowed; }
+        button.red-btn { background: var(--red-ink); }
+        button.dark-btn { background: #333; }
+
+        /* Toggle Switch */
+        .toggle-container { display: flex; align-items: center; justify-content: space-between; margin: 5px 0; font-weight: bold; }
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--blue-ink); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* Room UI */
+        .player-slot { padding: 10px; border-bottom: 2px dashed var(--blue-ink); margin: 5px 0; font-size: 16px; font-weight: bold; display: flex; justify-content: space-between; }
+
+        /* Game Board Layout */
+        .game-header { width: 100%; display: flex; justify-content: space-between; background: rgba(255,255,255,0.95); padding: 8px 12px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 5px; z-index: 10; font-size: 15px; }
         
-        .search-bar {
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-            border-radius: 30px;
-        }
-        .search-bar i { color: #aaa; margin-right: 10px; }
-        .search-bar input {
-            background: transparent;
-            border: none;
-            outline: none;
-            color: #fff;
-            width: 100%;
-            font-size: 16px;
-        }
-        .search-bar input::placeholder { color: #aaa; }
+        .game-board { position: relative; width: 100%; max-width: 400px; height: 60vh; min-height: 380px; margin-top: 15px; }
 
-        /* App List (Home) */
-        .app-list {
-            padding: 10px 20px 20px; /* Padding bottom adjusted since bottom nav is removed */
-            overflow-y: auto;
-            flex: 1;
+        /* Card Wrapper & Positions */
+        .card-wrapper { position: absolute; display: flex; flex-direction: column; align-items: center; transition: all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1); width: 85px; }
+
+        .pos-center { top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 1; }
+        .pos-center:nth-child(1) { transform: translate(-50%, -50%) rotate(-6deg); z-index: 4; }
+        .pos-center:nth-child(2) { transform: translate(-50%, -50%) rotate(4deg); z-index: 3; }
+        .pos-center:nth-child(3) { transform: translate(-50%, -50%) rotate(-2deg); z-index: 2; }
+        .pos-center:nth-child(4) { transform: translate(-50%, -50%) rotate(5deg); z-index: 1; }
+
+        .pos-top-left { top: 0; left: 2%; transform: scale(0.9); }
+        .pos-top-mid { top: -20px; left: 50%; transform: translateX(-50%) scale(0.9); }
+        .pos-top-right { top: 0; right: 2%; transform: scale(0.9); }
+        .pos-bottom-mid { bottom: 0; left: 50%; transform: translateX(-50%) scale(1.1); z-index: 5; }
+
+        /* Card Design */
+        .card { width: 100%; height: 120px; background: var(--card-bg); border-radius: 10px; box-shadow: 2px 4px 10px rgba(0,0,0,0.3); position: relative; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1), box-shadow 0.3s ease; border: 2px solid #ccc; }
+        .card.flipped { transform: rotateY(180deg); }
+
+        /* Glow Effects for Police Guess */
+        .glow-green { box-shadow: 0 0 20px 6px rgba(40, 167, 69, 0.9) !important; border: 3px solid #28a745 !important; }
+        .glow-red { box-shadow: 0 0 20px 6px rgba(220, 53, 69, 0.9) !important; border: 3px solid #dc3545 !important; }
+
+        @keyframes stackShuffle {
+            0% { transform: translate(-50%, -50%) rotate(0); }
+            25% { transform: translate(-60%, -40%) rotate(15deg); }
+            50% { transform: translate(-40%, -60%) rotate(-15deg); }
+            75% { transform: translate(-45%, -45%) rotate(5deg); }
+            100% { transform: translate(-50%, -50%) rotate(0); }
         }
-        .app-list::-webkit-scrollbar { display: none; }
+        .shuffling-anim .card { animation: stackShuffle 0.4s infinite; }
+
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .card-back { background: repeating-linear-gradient(45deg, var(--blue-ink), var(--blue-ink) 10px, transparent 10px, transparent 20px); border: 3px solid white; }
+        .card-front { transform: rotateY(180deg); background: white; font-size: 20px; color: var(--blue-ink); font-family: 'Baloo Da 2', cursive; }
+
+        .player-info { font-size: 12px; margin-top: 6px; font-weight: bold; background: rgba(255, 255, 255, 0.95); padding: 4px 6px; border-radius: 6px; border: 1px solid var(--blue-ink); color: var(--blue-ink); box-shadow: 0 2px 4px rgba(0,0,0,0.1); line-height: 1.2; width: 100%; text-align: center; }
+        .pos-center .player-info { display: none; }
+
+        /* Small Police Modal */
+        #police-modal { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.98); border: 2px solid var(--red-ink); border-radius: 12px; padding: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 1000; width: 90%; max-width: 320px; display: none; flex-direction: column; align-items: center; }
+
+        /* Pure Notebook (Khata) Scoreboard Modal */
+        #khata-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: transparent; display: none; z-index: 2000; overflow: hidden; }
         
-        .app-card {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 16px;
-            transition: 0.2s;
-            cursor: pointer;
-        }
-        .app-card:active { transform: scale(0.95); }
-        .app-card img {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            object-fit: cover;
-            margin-right: 15px;
-        }
-        .app-info { flex: 1; }
-        .app-info h3 { font-size: 16px; margin-bottom: 4px; }
-        .app-info p { font-size: 12px; color: #ccc; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .btn-open {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: #fff;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 12px;
+        .khata-fullscreen {
+            width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;
+            background-color: var(--paper-bg);
+            /* Line height is precisely 24px here to fit 20 rounds perfectly */
+            background-image: linear-gradient(90deg, transparent 40px, var(--red-ink) 40px, var(--red-ink) 42px, transparent 42px),
+                              linear-gradient(var(--blue-ink) 1px, transparent 1px);
+            background-size: 100% 24px; 
+            background-position: 0 -1px; /* Align text on the line */
+            padding: 24px 5px 48px 45px; /* Locked to 24px grid */
         }
 
-        /* App Details View */
-        .details-header { padding: 40px 20px 20px; display: flex; align-items: center; }
-        .back-btn { background: transparent; border: none; color: #fff; font-size: 20px; cursor: pointer; }
+        /* Seamless Khata Table */
+        .khata-table { width: 100%; border-collapse: collapse; background: transparent; table-layout: fixed; margin: 0; }
+        .khata-table tr { height: 24px; } /* Exact match to background line gap */
+        .khata-table th, .khata-table td {
+            border: none; padding: 0; margin: 0; height: 24px; line-height: 24px;
+            vertical-align: bottom; text-align: center;
+            font-family: 'Baloo Da 2', cursive; font-size: 14px; font-weight: 800; color: var(--blue-ink);
+        }
+        .khata-table th { color: var(--red-ink); font-size: 15px; }
         
-        .app-banner {
-            text-align: center;
-            padding: 20px;
-        }
-        .app-banner img {
-            width: 100px;
-            height: 100px;
-            border-radius: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            margin-bottom: 15px;
-        }
-        .app-desc-container {
-            padding: 20px;
-            flex: 1;
-            overflow-y: auto;
-            margin: 10px 20px;
-        }
-        .app-desc-container p { font-size: 14px; color: #ddd; line-height: 1.6; }
-        
-        .launch-btn-container { padding: 20px; text-align: center; }
-        .launch-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 30px;
-            color: #fff;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
-            transition: 0.2s;
-        }
-        .launch-btn:active { transform: scale(0.95); }
-
-        /* Full Screen Iframe */
-        iframe {
-            width: 100vw;
-            height: 100vh;
-            border: none;
-            background: #fff;
-            display: block;
+        /* Final Results drawn on paper */
+        .final-drawn-box {
+            margin-top: 24px; text-align: center;
+            border: 2px dashed var(--red-ink); padding: 10px; border-radius: 10px;
+            background: rgba(255,255,255,0.7); display: none;
         }
 
-        /* Loading Spinner */
-        .loader {
-            border: 4px solid rgba(255,255,255,0.1);
-            border-left-color: #fff;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 50px auto;
-        }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <!-- Home View -->
-    <div id="home-view" class="view active">
-        <div class="header">
-            <h1>App Store</h1>
-            <div class="search-bar glass">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Search apps...">
+    <!-- 1. AUTH SCREEN -->
+    <div id="auth-screen" class="screen active-screen">
+        <div class="paper-box">
+            <h1 class="baloo-font" style="text-align:center; color: var(--blue-ink); font-size:24px;">চোর-পুলিশ-বাবু-ডাকাত</h1>
+            <p style="text-align:center; margin-bottom: 15px; font-size: 14px;">খেলতে লগইন বা সাইনআপ করুন</p>
+            <input type="text" id="username" placeholder="আপনার নাম (ইংরেজিতে/বাংলায়)">
+            <input type="password" id="password" placeholder="পাসওয়ার্ড (৪ ডিজিট পিন)">
+            <button id="login-btn" onclick="handleAuth()">প্রবেশ করুন <i class="fa-solid fa-arrow-right-to-bracket"></i></button>
+            <p id="auth-error" style="color:var(--red-ink); text-align:center; font-size:13px; font-weight:bold; display:none; margin-top:5px;"></p>
+        </div>
+    </div>
+
+    <!-- 2. HOME SCREEN -->
+    <div id="home-screen" class="screen">
+        <div class="paper-box" style="padding-top:15px; padding-bottom: 15px;">
+            <h2 class="baloo-font" style="font-size: 20px;">স্বাগতম, <span id="user-display-name" style="color:var(--red-ink)"></span></h2>
+            
+            <!-- Group 1: Create Game -->
+            <div class="action-group">
+                <h3 style="color:var(--blue-ink); font-size:15px; margin-bottom:10px;"><i class="fa-solid fa-gamepad"></i> নতুন খেলা তৈরি করুন</h3>
+                <div style="display:flex; gap:10px;">
+                    <button onclick="createRoom('public')"><i class="fa-solid fa-globe"></i> পাবলিক</button>
+                    <button onclick="createRoom('private')" class="dark-btn"><i class="fa-solid fa-lock"></i> প্রাইভেট</button>
+                </div>
+            </div>
+
+            <!-- Group 2: Join Game -->
+            <div class="action-group">
+                <h3 style="color:var(--blue-ink); font-size:15px; margin-bottom:10px;"><i class="fa-solid fa-right-to-bracket"></i> রুমে যোগ দিন</h3>
+                <div style="display:flex; gap:10px; margin-bottom:5px;">
+                    <input type="text" id="join-code" placeholder="রুম কোড দিন (প্রাইভেট)" style="margin:0;">
+                    <button onclick="joinPrivateRoom()" style="margin:0; width:auto; padding:0 15px;">জয়েন</button>
+                </div>
+                <div class="toggle-container" style="margin:0;">
+                    <span style="font-size:14px; font-weight:normal;"><i class="fa-solid fa-robot"></i> অটো-জয়েন (পাবলিক)</span>
+                    <label class="switch"><input type="checkbox" id="auto-join-toggle"><span class="slider"></span></label>
+                </div>
+            </div>
+
+            <!-- Group 3: Room List -->
+            <div class="action-group" style="padding:10px;">
+                <h3 style="color:var(--red-ink); font-size:14px; margin-bottom:5px;"><i class="fa-solid fa-list"></i> ফাঁকা পাবলিক রুম</h3>
+                <div id="public-rooms-list" style="max-height: 100px; overflow-y: auto;"></div>
+            </div>
+
+            <button class="red-btn" onclick="logout()" style="margin-top: 20px;"><i class="fa-solid fa-power-off"></i> লগ আউট</button>
+        </div>
+    </div>
+
+    <!-- 3. ROOM SCREEN -->
+    <div id="room-screen" class="screen">
+        <div class="paper-box">
+            <h2 class="baloo-font">রুম কোড: <span id="room-code-display" style="color:var(--red-ink);"></span></h2>
+            <p id="room-type-display" style="font-size: 13px; color: #555;"></p>
+            <div style="margin-top: 15px;" id="players-list"></div>
+            <button id="start-game-btn" onclick="startGame()" style="display:none; margin-top:20px;"><i class="fa-solid fa-play"></i> খেলা শুরু করুন</button>
+            <button class="red-btn" onclick="leaveRoom()"><i class="fa-solid fa-right-from-bracket"></i> রুম ছাড়ুন</button>
+        </div>
+    </div>
+
+    <!-- 4. GAME SCREEN -->
+    <div id="game-screen" class="screen" style="padding: 15px; padding-left: 45px;">
+        <div class="game-header">
+            <div style="font-weight:bold; color:var(--red-ink); padding-top:4px;">রাউন্ড: <span id="round-number">1</span>/20</div>
+            <div>
+                <button onclick="showScoreboard(false)" style="margin:0; padding:4px 12px; font-size:13px; background:transparent; color:var(--blue-ink); border: 2px solid var(--blue-ink); border-radius:15px; font-weight:bold;">
+                    <i class="fa-solid fa-book-open"></i> খাতা দেখুন
+                </button>
             </div>
         </div>
-        <div id="loading" class="loader"></div>
-        <div class="app-list" id="appList">
-            <!-- Dynamic Apps Here -->
+        
+        <div style="text-align: center; margin-top: 5px; z-index: 10; position:relative;">
+            <h3 id="game-status-text" class="baloo-font" style="color:var(--blue-ink); background:rgba(255,255,255,0.9); display:inline-block; padding:3px 15px; border-radius:10px; border:1px dashed var(--blue-ink); font-size: 15px;">অপেক্ষা করুন...</h3>
+        </div>
+
+        <div class="game-board" id="game-board-area">
+            <!-- Cards -->
         </div>
     </div>
 
-    <!-- App Details View -->
-    <div id="details-view" class="view">
-        <div class="details-header">
-            <button class="back-btn" onclick="goBackUI()"><i class="fas fa-arrow-left"></i></button>
-        </div>
-        <div class="app-banner">
-            <img id="det-logo" src="" alt="App Logo">
-            <h2 id="det-name">App Name</h2>
-        </div>
-        <div class="app-desc-container glass">
-            <h3>About App</h3>
-            <p id="det-desc" style="margin-top: 10px;">Description here</p>
-        </div>
-        <div class="launch-btn-container">
-            <button class="launch-btn" onclick="openApp()"><i class="fas fa-play"></i> Open App</button>
-        </div>
+    <!-- POLICE GUESS MODAL (MINI) -->
+    <div id="police-modal">
+        <h3 class="baloo-font" style="color:var(--red-ink); margin-bottom: 5px; font-size:18px;">আপনি পুলিশ! 👮</h3>
+        <p style="font-size: 13px; margin-bottom: 10px; font-weight:bold; color:var(--blue-ink)">চোর কে? (<span id="police-timer">30</span> সেঃ)</p>
+        <div id="suspects-list" style="display:flex; gap:8px; width:100%; justify-content:center; flex-wrap:wrap;"></div>
     </div>
 
-    <!-- Run App View (Fullscreen without headers) -->
-    <div id="run-view" class="view">
-        <iframe id="appFrame" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+    <!-- KHATA SCOREBOARD MODAL (SEAMLESS NOTEBOOK LOCKED) -->
+    <div id="khata-modal">
+        <div class="khata-fullscreen">
+            <!-- Drawn Title locked to 24px grid -->
+            <div style="text-align:center; height:24px; line-height:24px; margin-bottom:24px;">
+                <span class="baloo-font" style="font-size:18px; color:var(--blue-ink); font-weight:bold; border-bottom: 2px dashed var(--red-ink);">স্কোরের খাতা</span>
+            </div>
+            
+            <table class="khata-table" id="khata-table-content"></table>
+            
+            <div id="final-results" class="final-drawn-box">
+                <h3 style="color:var(--red-ink); font-family:'Baloo Da 2', cursive; font-size:18px; margin-bottom:5px;">ফাইনাল রেজাল্ট</h3>
+                <div id="ranking-list" style="font-size:15px; line-height:24px; font-family:'Baloo Da 2', cursive; color:var(--blue-ink); font-weight:bold;"></div>
+                <p style="font-size:12px; color:var(--red-ink); margin-top:10px; font-weight:bold;">⚠️ এই ম্যাচ সেভ হয় না। স্ক্রিনশট নিন!</p>
+                <button onclick="leaveRoom()" style="margin-top:10px; width:auto; padding:5px 20px; border-radius:20px;">হোমে ফিরুন</button>
+            </div>
+
+            <!-- Hand-drawn style close button (Locked to 24px margin) -->
+            <div id="close-khata-container" style="text-align:center; margin-top: 24px;">
+                <button onclick="document.getElementById('khata-modal').style.display='none'" style="width:auto; background:transparent; color:var(--red-ink); border:2px dashed var(--red-ink); padding:2px 20px; border-radius:20px; font-weight:bold; box-shadow:none;">বন্ধ করুন ✖</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        // === FIREBASE CONFIGURATION ===
+        // ==========================================
+        // FIREBASE CONFIGURATION & INIT
+        // ==========================================
         const firebaseConfig = {
-            apiKey: "AIzaSyBTS7y25bPLgjWbt94BGAl_t60ZZlQ_v00",
-            authDomain: "app-store-bd8e9.firebaseapp.com",
-            databaseURL: "https://app-store-bd8e9-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "app-store-bd8e9",
-            storageBucket: "app-store-bd8e9.firebasestorage.app",
-            messagingSenderId: "60175333244",
-            appId: "1:60175333244:web:9f5f737907ada12e1696f9"
+          apiKey: "AIzaSyBM0LUmRcyxaXMD9BQDdo2FwptPL73accg",
+          authDomain: "chor-police-faf06.firebaseapp.com",
+          databaseURL: "https://chor-police-faf06-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "chor-police-faf06",
+          storageBucket: "chor-police-faf06.firebasestorage.app",
+          messagingSenderId: "329895593664",
+          appId: "1:329895593664:web:61021aa92977206d270f25"
         };
-
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let allApps = {};
-        let currentAppId = null;
+        let currentUser = JSON.parse(localStorage.getItem('cpbd_user')) || null;
+        let currentRoomId = null, isHost = false, roomRef = null, gameData = null, policeTimerInterval = null;
+        const ROLES = ['চোর', 'পুলিশ', 'বাবু', 'ডাকাত'];
+        
+        function showScreen(screenId) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(screenId).classList.add('active-screen'); }
 
-        // Fetch Apps in Real-time
-        db.ref('apps').on('value', (snapshot) => {
-            document.getElementById('loading').style.display = 'none';
-            allApps = snapshot.val() || {};
-            renderApps(allApps);
+        window.onload = () => { if (currentUser) { document.getElementById('user-display-name').innerText = currentUser.name; showScreen('home-screen'); listenToPublicRooms(); } else showScreen('auth-screen'); };
+        function showError(msg) { const err = document.getElementById('auth-error'); err.innerText = msg; err.style.display = 'block'; setTimeout(() => err.style.display = 'none', 5000); }
 
-            // Real-time update for running app
-            if(currentAppId && allApps[currentAppId]) {
-                const updatedCode = allApps[currentAppId].htmlcode;
-                const iframe = document.getElementById('appFrame');
-                if(iframe.srcdoc !== updatedCode) {
-                    iframe.srcdoc = updatedCode; // Auto update live app
-                }
-            } else if (currentAppId && !allApps[currentAppId]) {
-                alert("This app was removed by the admin.");
-                goHome();
-            }
-        });
+        function handleAuth() {
+            const name = document.getElementById('username').value.trim(); const pass = document.getElementById('password').value.trim();
+            if(!name || !pass) return showError("নাম এবং পাসওয়ার্ড দিন");
+            const userId = name.toLowerCase().replace(/[^a-z0-9]/g, ''); if(userId.length < 3) return showError("নাম কমপক্ষে ৩ অক্ষরের হতে হবে");
+            const btn = document.getElementById('login-btn'); const btnText = btn.innerHTML; btn.innerHTML = 'অপেক্ষা করুন...'; btn.disabled = true;
 
-        // Search System
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            renderApps(allApps, e.target.value);
-        });
+            db.ref('users/' + userId).once('value').then(snap => {
+                if (snap.exists() && snap.val().pass !== pass) { showError("ভুল পাসওয়ার্ড!"); resetButton(btn, btnText); }
+                else db.ref('users/' + userId).set({ name: name, pass: pass }).then(() => {
+                    currentUser = { id: userId, name: name }; localStorage.setItem('cpbd_user', JSON.stringify(currentUser));
+                    document.getElementById('user-display-name').innerText = name; showScreen('home-screen'); listenToPublicRooms();
+                });
+            });
+        }
+        function resetButton(btn, text) { btn.innerHTML = text; btn.disabled = false; }
+        function logout() { localStorage.removeItem('cpbd_user'); currentUser = null; showScreen('auth-screen'); }
 
-        function renderApps(appsObj, filterText = "") {
-            const appList = document.getElementById('appList');
-            appList.innerHTML = '';
-            
-            Object.keys(appsObj).forEach(key => {
-                const app = appsObj[key];
-                
-                // --- HOME LIST RENDER (with search filter) ---
-                if(app.name.toLowerCase().includes(filterText.toLowerCase()) || 
-                   app.description.toLowerCase().includes(filterText.toLowerCase())) {
-                    
-                    const card = document.createElement('div');
-                    card.className = 'app-card glass';
-                    card.onclick = () => showDetails(key);
-                    
-                    card.innerHTML = `
-                        <img src="${app.logo}" onerror="this.src='https://via.placeholder.com/60'">
-                        <div class="app-info">
-                            <h3>${app.name}</h3>
-                            <p>${app.description}</p>
-                        </div>
-                        <button class="btn-open">VIEW</button>
-                    `;
-                    appList.appendChild(card);
-                }
+        // ==========================================
+        // HOME & ROOM LOGIC
+        // ==========================================
+        function listenToPublicRooms() {
+            db.ref('rooms').orderByChild('status').equalTo('waiting').on('value', snap => {
+                let html = ''; let firstAvailableRoom = null;
+                snap.forEach(child => {
+                    const r = child.val();
+                    if (r.type === 'public' && r.players && Object.keys(r.players).length < 4) {
+                        html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:5px 8px; border-bottom:1px dashed #ccc; font-size:14px; font-weight:bold;">
+                            <span style="color:var(--blue-ink)"><i class="fa-solid fa-users"></i> ${child.key} (${Object.keys(r.players).length}/4)</span>
+                            <button onclick="joinRoom('${child.key}')" style="margin:0; width:auto; padding:4px 12px; font-size:13px; border-radius:15px;">যোগ দিন</button></div>`;
+                        if(!firstAvailableRoom) firstAvailableRoom = child.key;
+                    }
+                });
+                document.getElementById('public-rooms-list').innerHTML = html || '<p style="font-size:13px; color:#888; text-align:center;">কোনো ফাঁকা রুম নেই।</p>';
+                if(document.getElementById('auto-join-toggle').checked && firstAvailableRoom && !currentRoomId) joinRoom(firstAvailableRoom);
             });
         }
 
-        function switchView(viewId) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
+        function createRoom(type) {
+            const roomId = Math.floor(1000 + Math.random() * 9000).toString();
+            db.ref('rooms/' + roomId).set({ id: roomId, type: type, status: 'waiting', host: currentUser.id, round: 1, players: { [currentUser.id]: { name: currentUser.name, type: 'human' } }, roles: {}, scores: { [currentUser.id]: [0] }, policeGuess: "" }).then(() => joinRoom(roomId));
+        }
+        function joinPrivateRoom() { const code = document.getElementById('join-code').value.trim(); if(code) joinRoom(code); }
+
+        function joinRoom(roomId) {
+            db.ref('rooms/' + roomId).once('value').then(snap => {
+                if(!snap.exists() || snap.val().status !== 'waiting' || (Object.keys(snap.val().players || {}).length >= 4 && !snap.val().players[currentUser.id])) return alert("রুমটিতে জয়েন করা সম্ভব নয়!");
+                currentRoomId = roomId; db.ref(`rooms/${roomId}/players/${currentUser.id}`).set({ name: currentUser.name, type: 'human' });
+                db.ref(`rooms/${roomId}/players/${currentUser.id}`).onDisconnect().update({ type: 'bot' }); 
+                listenToRoom(roomId); showScreen('room-screen'); document.getElementById('room-code-display').innerText = roomId;
+                document.getElementById('room-type-display').innerText = snap.val().type === 'public' ? 'পাবলিক রুম' : 'প্রাইভেট রুম';
+            });
+        }
+        function leaveRoom() { if(currentRoomId) { db.ref(`rooms/${currentRoomId}/players/${currentUser.id}`).remove(); if(roomRef) roomRef.off(); currentRoomId = null; isHost = false; } document.getElementById('khata-modal').style.display = 'none'; showScreen('home-screen'); }
+
+        function listenToRoom(roomId) {
+            roomRef = db.ref('rooms/' + roomId);
+            roomRef.on('value', snap => { if(!snap.exists()) return leaveRoom(); gameData = snap.val(); updateRoomUI(); handleGameFlow(); });
         }
 
-        // === NAVIGATION CONTROLS ===
-        function goHome() {
-            switchView('home-view');
-            currentAppId = null;
+        function updateRoomUI() {
+            if(!gameData || !gameData.players) return;
+            const pKeys = Object.keys(gameData.players);
+            isHost = (pKeys.filter(k => gameData.players[k].type === 'human')[0] === currentUser.id);
+            let html = '';
+            for(let i=0; i<4; i++) html += `<div class="player-slot"><span style="color:${pKeys[i]?'var(--blue-ink)':'#888'}">${i+1}. ${pKeys[i]?gameData.players[pKeys[i]].name+(gameData.players[pKeys[i]].type==='bot'?' 🤖':''):'অপেক্ষমাণ...'}</span></div>`;
+            document.getElementById('players-list').innerHTML = html;
+            document.getElementById('start-game-btn').style.display = (isHost && gameData.status === 'waiting') ? 'block' : 'none';
         }
 
-        function showDetails(id) {
-            currentAppId = id;
-            const app = allApps[id];
-            document.getElementById('det-logo').src = app.logo;
-            document.getElementById('det-name').innerText = app.name;
-            document.getElementById('det-desc').innerText = app.description;
-            switchView('details-view');
+        // ==========================================
+        // HOST ROUND SYSTEM
+        // ==========================================
+        function startGame() {
+            if(!isHost) return;
+            const players = gameData.players || {}; let pKeys = Object.keys(players); let botCount = 1;
+            while(pKeys.length < 4) { const botId = 'bot_' + Math.random().toString(36).substr(2, 5); players[botId] = { name: 'বট ' + botCount, type: 'bot' }; pKeys.push(botId); botCount++; }
+            let scores = {}; pKeys.forEach(k => scores[k] = []);
+            roomRef.update({ players: players, scores: scores, status: 'playing', roundStatus: 'init' }).then(() => startNextRound());
+        }
+
+        function startNextRound() {
+            if(!isHost) return;
+            let rolesObj = {}; let pKeys = Object.keys(gameData.players);
+            let shuffledRoles = [...ROLES].sort(() => 0.5 - Math.random());
+            pKeys.forEach((key, index) => rolesObj[key] = shuffledRoles[index]);
+            roomRef.update({ roles: rolesObj, policeGuess: "", roundStatus: 'shuffling' });
+
+            setTimeout(() => {
+                roomRef.update({ roundStatus: 'guessing' });
+                let policeId = pKeys.find(k => rolesObj[k] === 'পুলিশ');
+                if (gameData.players[policeId].type === 'bot') {
+                    let suspects = pKeys.filter(k => rolesObj[k] !== 'বাবু' && rolesObj[k] !== 'পুলিশ');
+                    let randomTime = 7000 + Math.floor(Math.random() * 8000); 
+                    setTimeout(() => roomRef.update({ policeGuess: suspects[Math.floor(Math.random() * suspects.length)] }), randomTime);
+                }
+            }, 3000);
+        }
+
+        function processRoundResult() {
+            if(!isHost || gameData.roundStatus !== 'calculating') return;
+            let points = {}; let policeCorrect = (gameData.roles[gameData.policeGuess] === 'চোর');
+            Object.keys(gameData.roles).forEach(id => {
+                let r = gameData.roles[id];
+                if(r === 'বাবু') points[id] = 1200; else if(r === 'পুলিশ') points[id] = policeCorrect ? 900 : 0;
+                else if(r === 'চোর') points[id] = policeCorrect ? 0 : 400; else if(r === 'ডাকাত') points[id] = policeCorrect ? 400 : 600;
+            });
+            let newScores = gameData.scores || {}; Object.keys(points).forEach(id => { if(!newScores[id]) newScores[id] = []; newScores[id].push(points[id]); });
+
+            roomRef.update({ scores: newScores, roundStatus: 'khata' });
+
+            setTimeout(() => {
+                if(gameData.round >= 20) roomRef.update({ status: 'finished' });
+                else { roomRef.update({ roundStatus: 'gathering' }); setTimeout(() => roomRef.update({ round: gameData.round + 1 }).then(() => startNextRound()), 1500); }
+            }, 5000);
+        }
+
+        function getTotalScore(playerId) { return gameData.scores && gameData.scores[playerId] ? gameData.scores[playerId].reduce((a, b) => a + b, 0) : 0; }
+
+        // ==========================================
+        // CLIENT UI & ANIMATIONS
+        // ==========================================
+        function handleGameFlow() {
+            if(gameData.status === 'playing' || gameData.status === 'finished') { showScreen('game-screen'); document.getElementById('round-number').innerText = gameData.round; }
+            const statusTxt = document.getElementById('game-status-text'); const policeModal = document.getElementById('police-modal');
+
+            if(gameData.status === 'playing') {
+                if(gameData.roundStatus === 'init' || gameData.roundStatus === 'gathering') { statusTxt.innerText = "কার্ড গোছানো হচ্ছে..."; policeModal.style.display = 'none'; renderCards(); }
+                else if(gameData.roundStatus === 'shuffling') { statusTxt.innerText = "কার্ড বাটা হচ্ছে..."; policeModal.style.display = 'none'; renderCards(); } 
+                else if (gameData.roundStatus === 'guessing') {
+                    if (gameData.roles[currentUser.id] === 'পুলিশ') { statusTxt.innerText = "চোর ধরুন!"; showPoliceModal(); } else { statusTxt.innerText = "পুলিশ চোর খুঁজছে..."; policeModal.style.display = 'none'; }
+                    renderCards(); if(isHost && gameData.policeGuess !== "") roomRef.update({ roundStatus: 'calculating' }).then(() => processRoundResult());
+                }
+                else if (gameData.roundStatus === 'khata') { policeModal.style.display = 'none'; statusTxt.innerText = "স্কোর আপডেট হয়েছে!"; renderCards(); }
+            } else if (gameData.status === 'finished') { showScoreboard(true); }
+        }
+
+        function renderCards() {
+            const board = document.getElementById('game-board-area'); if(!gameData.roles || !gameData.players) return;
+            let myRole = gameData.roles[currentUser.id]; let imChorOrDakat = (myRole === 'চোর' || myRole === 'ডাকাত');
+            let isCenterState = (gameData.roundStatus === 'init' || gameData.roundStatus === 'shuffling' || gameData.roundStatus === 'gathering');
             
-            window.history.pushState({ page: "details" }, "", "");
+            let oppKeys = Object.keys(gameData.players).filter(k => k !== currentUser.id).sort(); let positions = {};
+            positions[currentUser.id] = 'pos-bottom-mid';
+            if(oppKeys[0]) positions[oppKeys[0]] = 'pos-top-left';
+            if(oppKeys[1]) positions[oppKeys[1]] = 'pos-top-mid';
+            if(oppKeys[2]) positions[oppKeys[2]] = 'pos-top-right';
+
+            let html = '';
+            Object.keys(gameData.players).forEach(id => {
+                let role = gameData.roles[id]; let isMe = (id === currentUser.id); let isBabu = (role === 'বাবু'); let isPolice = (role === 'পুলিশ');
+                let shouldFlip = false;
+                let glowClass = ''; // গ্লো ইফেক্ট এর জন্য ক্লাস
+
+                if(gameData.roundStatus === 'khata') {
+                    shouldFlip = true;
+                    // পুলিশ যাকে গেস করেছে তার সিস্টেমে গ্লো হবে
+                    if (gameData.policeGuess === id) {
+                        if (role === 'চোর') {
+                            glowClass = 'glow-green'; // পুলিশ সঠিক হলে সবুজ
+                        } else {
+                            glowClass = 'glow-red'; // পুলিশ ভুল করলে (ডাকাতকে ধরলে) লাল
+                        }
+                    }
+                }
+                else if (!isCenterState) { if (imChorOrDakat) shouldFlip = true; else if (isMe || isBabu || isPolice) shouldFlip = true; }
+
+                let icon = role === 'বাবু'?'🤵':role==='পুলিশ'?'👮':role==='চোর'?'🥷':'🔫';
+                let posClass = isCenterState ? 'pos-center' : positions[id];
+                let shuffleAnimClass = (gameData.roundStatus === 'shuffling') ? 'shuffling-anim' : '';
+
+                // glowClass যুক্ত করা হলো
+                html += `<div class="card-wrapper ${posClass} ${shuffleAnimClass}">
+                    <div class="card ${shouldFlip ? 'flipped' : ''} ${glowClass}"><div class="card-face card-back"></div><div class="card-face card-front"><span style="font-size:25px;">${icon}</span><br>${role}</div></div>
+                    <div class="player-info">${gameData.players[id].name.substring(0,8)}<br>💰 ${getTotalScore(id)}</div>
+                </div>`;
+            });
+            board.innerHTML = html;
         }
 
-        function openApp() {
-            if(!currentAppId) return;
-            const app = allApps[currentAppId];
-            document.getElementById('appFrame').srcdoc = app.htmlcode;
-            switchView('run-view');
+        function showPoliceModal() {
+            if(gameData.policeGuess !== "") return;
+            const modal = document.getElementById('police-modal'); const list = document.getElementById('suspects-list');
+            modal.style.display = 'flex'; list.innerHTML = '';
+            Object.keys(gameData.players).forEach(id => {
+                if(gameData.roles[id] !== 'বাবু' && gameData.roles[id] !== 'পুলিশ') {
+                    let btn = document.createElement('button'); btn.innerText = gameData.players[id].name;
+                    btn.style.margin = "0"; btn.style.padding = "6px 12px"; btn.style.fontSize = "14px"; btn.style.width = "auto";
+                    btn.onclick = () => { clearInterval(policeTimerInterval); roomRef.update({ policeGuess: id }); modal.style.display = 'none'; };
+                    list.appendChild(btn);
+                }
+            });
+            let timeLeft = 30; document.getElementById('police-timer').innerText = timeLeft; clearInterval(policeTimerInterval);
+            policeTimerInterval = setInterval(() => {
+                timeLeft--; document.getElementById('police-timer').innerText = timeLeft;
+                if(timeLeft <= 0) {
+                    clearInterval(policeTimerInterval); let suspects = Object.keys(gameData.players).filter(k => gameData.roles[k] !== 'বাবু' && gameData.roles[k] !== 'পুলিশ');
+                    roomRef.update({ policeGuess: suspects[0] }); modal.style.display = 'none';
+                }
+            }, 1000);
+        }
+
+        function showScoreboard(isFinal = false) {
+            const modal = document.getElementById('khata-modal'); modal.style.display = 'block';
+            const table = document.getElementById('khata-table-content'); const pKeys = Object.keys(gameData.players);
             
-            window.history.pushState({ page: "runApp" }, "", "");
-        }
+            let html = `<tr><th>রাঃ</th>`; pKeys.forEach(k => { html += `<th>${gameData.players[k].name.substring(0,5)}</th>`; }); html += `</tr>`;
+            let totals = {}; pKeys.forEach(k => totals[k] = 0);
+            let maxRounds = isFinal ? 20 : (gameData.round - (gameData.roundStatus === 'khata' ? 0 : 1));
+            
+            for(let r=0; r<maxRounds; r++) {
+                html += `<tr><td>${r+1}</td>`;
+                pKeys.forEach(k => { let score = (gameData.scores[k] && gameData.scores[k][r]) ? gameData.scores[k][r] : 0; totals[k] += score; html += `<td>${score}</td>`; });
+                html += `</tr>`;
+            }
+            html += `<tr style="color:var(--red-ink);"><td>মোট</td>`; pKeys.forEach(k => { html += `<td>${totals[k]}</td>`; }); html += `</tr>`; table.innerHTML = html;
 
-        function goBackUI() {
-            if(window.history.state) {
-                window.history.back(); // This will trigger popstate
+            if(isFinal) {
+                document.getElementById('close-khata-container').style.display = 'none'; document.getElementById('final-results').style.display = 'block';
+                let rankArr = pKeys.map(k => ({ name: gameData.players[k].name, score: totals[k] })).sort((a,b) => b.score - a.score);
+                let rankHtml = ''; ['🥇 ১ম', '🥈 ২য়', '🥉 ৩য়', '৪র্থ'].forEach((m, i) => { rankHtml += `<div>${m}: ${rankArr[i].name} (${rankArr[i].score})</div>`; });
+                document.getElementById('ranking-list').innerHTML = rankHtml;
             } else {
-                goHome();
+                document.getElementById('close-khata-container').style.display = 'block'; document.getElementById('final-results').style.display = 'none';
             }
         }
-
-        // === HARDWARE BACK BUTTON (History API Integration) ===
-        window.addEventListener("popstate", function(event) {
-            const state = event.state;
-            
-            // If user is leaving runApp, clear iframe memory instantly
-            if (document.getElementById('run-view').classList.contains('active')) {
-                document.getElementById('appFrame').srcdoc = ""; 
-            }
-
-            if (!state || !state.page) {
-                // No state means we return to the root (Home)
-                goHome();
-            } else if (state.page === "details") {
-                // If previous state was details, show details UI
-                switchView('details-view');
-            }
-        });
-
     </script>
 </body>
 </html>
